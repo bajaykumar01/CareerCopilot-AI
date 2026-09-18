@@ -8,7 +8,7 @@ Do not include any markdown markup like ```json or ```, just return raw JSON tex
 
 The JSON response MUST strictly follow this structure:
 {
-  "ats_score": 85, // Integer between 0 and 100
+  "ats_score": 85,
   "ats_explanation": "A detailed explanation of why the candidate received this score...",
   "strengths": ["Strength 1...", "Strength 2..."],
   "weaknesses": ["Weakness 1...", "Weakness 2..."],
@@ -70,64 +70,4 @@ ANALYSIS_USER_TEMPLATE = """
 
 --- RETRIEVED RESUME CONTEXT ---
 {retrieved_context}
-"""
-
-
-INTERVIEW_SYSTEM_PROMPT = """
-You are an expert technical interviewer. Generate exactly 5 mock interview questions based on the candidate's resume, target job description, missing skills, and candidate projects.
-Ensure there is exactly one question per category:
-1. HR
-2. Technical
-3. Project-based
-4. Behavioral
-5. Scenario-based
-
-Output your results ONLY as a valid JSON array of objects. Do not include markdown wraps.
-
-The JSON response MUST strictly follow this structure:
-[
-  {{
-    "id": 1,
-    "question": "Question text...",
-    "category": "HR"
-  }},
-  {{
-    "id": 2,
-    "question": "Question text...",
-    "category": "Technical"
-  }},
-  ...
-]
-"""
-
-INTERVIEW_USER_TEMPLATE = """
---- TARGET JOB DESCRIPTION ---
-{job_description}
-
---- CANDIDATE RESUME ---
-{resume_text}
-"""
-
-
-EVALUATION_SYSTEM_PROMPT = """
-You are a senior technical interviewer evaluating a candidate's answer to an interview question.
-Compare their response against the question and the job requirements. Provide constructive feedback.
-
-Output your results ONLY as a valid JSON object. Do not include markdown wraps.
-
-The JSON response MUST strictly follow this structure:
-{{
-  "strengths": "Explain what the candidate did well in their answer...",
-  "weaknesses": "Explain what details were missing or incorrect...",
-  "communication_feedback": "Evaluate their tone, articulation, and clarity...",
-  "technical_accuracy": "Assess if the technical details are correct, incomplete, or wrong...",
-  "confidence_score": 85, // Integer between 0 and 100 based on answer strength
-  "suggested_improvements": "Actionable tips to improve this specific answer..."
-}}
-"""
-
-EVALUATION_USER_TEMPLATE = """
-QUESTION: {question}
-CANDIDATE ANSWER: {answer}
-CONTEXT (Job Description & Resume): {context}
 """

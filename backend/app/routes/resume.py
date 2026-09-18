@@ -8,7 +8,7 @@ from app.schemas.resume import ResumeResponse
 from app.services.resume import create_resume, get_resumes_by_user, get_resume_by_id
 from app.utils.pdf_parser import extract_text_from_pdf_bytes
 
-router = APIRouter(prefix="/resumes", tags=["Resumes"])
+router = APIRouter(prefix="/resume", tags=["Resumes"])
 
 # Create local uploads folder if not exists
 UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "uploads")
@@ -31,7 +31,6 @@ async def upload_resume(
         
     try:
         content = await file.read()
-        # Parse PDF text
         extracted_text = extract_text_from_pdf_bytes(content)
         if not extracted_text:
             raise HTTPException(
@@ -39,16 +38,13 @@ async def upload_resume(
                 detail="Resume PDF is blank or has no readable text content."
             )
             
-        # Create a unique filename to avoid overwrites
         file_ext = os.path.splitext(file.filename)[1]
         unique_name = f"{uuid.uuid4()}{file_ext}"
         file_path = os.path.join(UPLOAD_DIR, unique_name)
         
-        # Save physical file
         with open(file_path, "wb") as f:
             f.write(content)
             
-        # Register in database
         db_resume = create_resume(db, current_user.id, file.filename, file_path, extracted_text)
         return db_resume
         
@@ -60,8 +56,9 @@ async def upload_resume(
             detail=f"An error occurred while uploading: {str(e)}"
         )
 
+@router.get("", response_model=list[ResumeResponse])
 @router.get("/history", response_model=list[ResumeResponse])
-def get_history(
+def get_resumes(
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -71,7 +68,7 @@ def get_history(
     return get_resumes_by_user(db, current_user.id)
 
 @router.get("/{resume_id}", response_model=ResumeResponse)
-def get_details(
+def get_resume_details(
     resume_id: int,
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)

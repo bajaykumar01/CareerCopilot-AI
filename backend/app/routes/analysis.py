@@ -8,6 +8,7 @@ from app.services.analysis import run_and_save_analysis, get_analysis_results_by
 
 router = APIRouter(prefix="/analysis", tags=["RAG Analysis"])
 
+@router.post("", response_model=AnalysisResultResponse, status_code=status.HTTP_201_CREATED)
 @router.post("/run", response_model=AnalysisResultResponse, status_code=status.HTTP_201_CREATED)
 def run_analysis(
     req: AnalysisRequest,
@@ -15,13 +16,13 @@ def run_analysis(
     db: Session = Depends(get_db)
 ):
     """
-    Triggers the LangChain-based RAG pipeline on a selected resume and job description.
+    Triggers the RAG pipeline analysis on a selected resume and job description.
     """
     api_key = settings.GEMINI_API_KEY
     if not api_key:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Google Gemini API key is missing on the server config. Please define GEMINI_API_KEY in backend .env"
+            detail="Google Gemini API key is missing. Please define GEMINI_API_KEY in backend .env"
         )
         
     try:
@@ -35,6 +36,7 @@ def run_analysis(
             detail=f"Failed to execute RAG matching pipeline: {str(e)}"
         )
 
+@router.get("", response_model=list[AnalysisResultResponse])
 @router.get("/history", response_model=list[AnalysisResultResponse])
 def get_analysis_history(
     current_user = Depends(get_current_user),
@@ -52,7 +54,7 @@ def get_analysis_details(
     db: Session = Depends(get_db)
 ):
     """
-    Retrieves a specific analysis details report.
+    Retrieves a specific analysis details report ensuring user ownership.
     """
     res = get_analysis_result_by_id(db, analysis_id, current_user.id)
     if not res:
